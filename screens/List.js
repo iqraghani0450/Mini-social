@@ -1,20 +1,53 @@
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from '../components/Header';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import SQLite from 'react-native-sqlite-storage'
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
-const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+const db = SQLite.openDatabase(
+    {
+        name: "Employees",
+        location: 'default',
+    },
+    () => { },
+    error => { console.log(error) }
+)
 
 const List = (props) => {
 
+
+
+
+    useFocusEffect(
+        React.useCallback(() => {
+            getDataFromDB()
+        }, [])
+    )
+
     const navigation = useNavigation()
-    const [data, setData] = useState(props?.route?.params?.array) 
+    const [data, setData] = useState([])
     console.log(props?.route?.params);
-    
+
+    const getDataFromDB = () => {
+        const query = "SELECT * FROM EMPLOYEE"
+        let arr = []
+
+        db.transaction((tx) =>
+            tx.executeSql(query, [], (tx, results) => {
+
+                for (let i = 0; i < results.rows.length; i++) {
+                    arr.push(results.rows.item(i))
+                }
+                setData(arr)
+            })
+        )
+    }
+
+
     // useEffect(() => {
     //     api();
     // }, []
@@ -23,40 +56,29 @@ const List = (props) => {
         navigation.navigate("Form", { isEdit: false })
     };
 
-    const setAsync = async () => {
-        try {
-           await AsyncStorage.removeItem('name')
-           console.log("working");
-           onFloatinActionClick()
-        }
-        catch (e) {
-            console.log("error", e);
-        }
-
-    }
-
     const renderDummy = ({ item, index }) => {
         return (
-            <TouchableOpacity
-                onPress={() => { navigation.navigate('Form', { data: item, index: index, isEdit: true }) }}
-                style={styles.listItems}>
-                <Icon
-                    style={styles.icon}
-                    name="star"
-                    size={15}
-                    color="#4CFF21"
-                />
+            item.FName != "admin" &&
+                <TouchableOpacity
+                    onPress={() => { navigation.navigate('Form', { data: item, index: index, isEdit: true }) }}
+                    style={styles.listItems}>
+                    <Icon
+                        style={styles.icon}
+                        name="star"
+                        size={15}
+                        color="#4CFF21"
+                    />
 
-                <View style={styles.listItemFirst}>
-                    {/* <Text style={styles.month}>{months[item.Month]}</Text> */}
-                    <Text style={styles.year}>{item.Name}</Text>
-                </View>
-                <View style={styles.subListItems}>
-                    <Text style={styles.Text}> Expense= 100 </Text>
-                    <Text style={styles.Text}> Income= 100 </Text>
-                </View>
+                    <View style={styles.listItemFirst}>
+                        {/* <Text style={styles.month}>{months[item.Month]}</Text> */}
+                        <Text style={styles.year}>{item.FName}</Text>
+                    </View>
+                    <View style={styles.subListItems}>
+                        <Text style={styles.Text}> Expense= 100 </Text>
+                        <Text style={styles.Text}> Income= 100 </Text>
+                    </View>
 
-            </TouchableOpacity>
+                </TouchableOpacity>
         )
     }
 
@@ -73,23 +95,23 @@ const List = (props) => {
     // }
 
     const footer = () => {
-        return(
-            <View style={{margin: 24}}></View>
+        return (
+            <View style={{ margin: 24 }}></View>
         )
     }
 
     return (
         <View style={styles.Container}>
-            <Header title='EMPLOYEES' />
+            <Header title='EMPLOYEES' showIconBack={true} showIcon={true} />
             <FlatList
                 numColumns={2}
-                data={props?.route?.params?.array}
+                data={data}
                 renderItem={renderDummy}
                 ListFooterComponent={footer}
             />
             <TouchableOpacity style={styles.FloatingActionButtonStyle}
                 activeOpacity={0.7}
-                onPress={() => { setAsync() }}>
+                onPress={() => { onFloatinActionClick() }}>
                 <Icon name='plus' size={25} color={"white"} />
             </TouchableOpacity>
         </View>

@@ -9,6 +9,7 @@ target 'DemoEmployeeForm' do
 
   # Flags change depending on the env values.
   flags = get_default_flags()
+  pod 'react-native-sqlite-storage', :path => '../node_modules/react-native-sqlite-storage'
 
   use_react_native!(
     :path => config[:reactNativePath],

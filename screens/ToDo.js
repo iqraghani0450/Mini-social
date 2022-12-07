@@ -10,7 +10,7 @@ const ToDo = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="To Do List" />
+      <Header title="To Do List" showIconBack={true} showIcon={true}/>
       <View style={styles.firstPart}>
         <TextInput
           style={styles.inputField}

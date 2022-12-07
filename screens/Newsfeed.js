@@ -2,69 +2,137 @@ import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View, Dimensio
 import React, { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import { useNavigation } from '@react-navigation/native'
-import Modal from "react-native-modal";
-
-
-
+import Modal from "react-native-modal"
+import SQLite from 'react-native-sqlite-storage'
+import { getCalendarDateString } from 'react-native-calendars/src/services'
+import { min } from 'react-native-reanimated'
 
 const windowHeight = Dimensions.get('window').height;
+
+const db = SQLite.openDatabase(
+    {
+        name: "Employees",
+        location: 'default'
+    },
+    () => { },
+    error => { console.log(error) }
+)
 
 const Newsfeed = () => {
 
     const [resp, setResp] = useState([])
     const [text, setText] = useState("")
-    const [indicator, setIndicator] = useState(false)
     const navigation = useNavigation()
+    let arr = []
 
 
     useEffect(() => {
         setIndicator(true);
-        getPosts()
+        GettingData()
+        //    let test =
+
+
+
+        // getPosts()
 
     }, [])
 
-    const getPosts = () => {
-        fetch("https://www.engage.salesflo.com/api/app/news-feed/get", {
-            method: "POST",
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ "RepsId": 3967 })
-        }
-        ).then(res => res.json())
-            .then((res) => {
-                setResp(res.data)
-                setIndicator(false)
-            })
-            .catch((rej) => {
-            })
-    }
+    // const InsertingData = () => {
+    //    let query="INSERT INTO NEWSFEED VALUES (?,?,?)"
+    //     db.transaction((tx) => {
+    //         tx.executeSql(query , [Name, DateOfPosting, CommentText ])
+    //     })
+    //     GettingData()
+    // }
+    // const dummyData = () => {
+
+    // }
+   
 
     const onPost = () => {
-        fetch("https://www.engage.salesflo.com/api/app/news-feed/post", {
-            method: "POST",
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                "RepsId": 3967,// hard code
-                "RepName": "mashad",
-                "CommentText": text,
-                "AvatarNo": "0",//hardcode
-                "ImageName": null, //hardcode
-                "ImageBase64": null //hardcode
-            })
-        }).then(res => res.json())
-            .then((res) => {
-                setText('')
-                getPosts()
-            }).catch((rej) => {
-                console.log(rej);
-            })
 
+        let InsertQuery = "INSERT INTO NEWSFEED VALUES (?,?,?)"
+        let date = new Date().getDate() + "/" + parseInt(new Date().getMonth() + 1) + "/" + new Date().getFullYear()
+        let hour = new Date().getHours() % 12 || 12
+        let mins = new Date().getMinutes()
+        let ampm = new Date().getHours() > 12 ? "PM" : "AM"
+        let dateAndTime = (date + " " + hour + ":" + mins + " " + ampm)
+
+        db.transaction((tx) => {
+            tx.executeSql(InsertQuery, [Name, dateAndTime, text])
+        })
+        setText("")
+        GettingData()
     }
+
+    const GettingData = async () => {
+        let SelectQuery = "SELECT * FROM NEWSFEED"
+        db.transaction((tx) => {
+            tx.executeSql(SelectQuery, [], (tx, results) => {
+                for (let i = 0; i < results.rows.length; i++) {
+                    arr.push(results.rows.item(i))
+                }
+                setResp([...arr].reverse())
+
+            })
+        })
+    }
+
+        const DeleteData = (CommentText) => {
+            let DeleteQuery = "DELETE FROM NEWSFEED WHERE CommentText = ?"
+            db.transaction((tx) => {
+                tx.executeSql(DeleteQuery, [CommentText], (tx,results) => {
+                })
+            })
+            GettingData()
+        }
+
+
+    // const getPosts = () => {
+    //     fetch("https://www.engage.salesflo.com/api/app/news-feed/get", {
+    //         method: "POST",
+    //         headers: {
+    //             Accept: 'application/json',
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({ "RepsId": 3967 })
+    //     }
+    //     ).then(res => res.json())
+    //         .then((res) => {
+    //             setResp(res.data)
+    //             setIndicator(false)
+    //         })
+    //         .catch((rej) => {
+    //         })
+    // }
+
+    // const onPost = () => {
+    //     fetch("https://www.engage.salesflo.com/api/app/news-feed/post", {
+    //         method: "POST",
+    //         headers: {
+    //             Accept: 'application/json',
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({
+    //             "RepsId": 3967,// hard code
+    //             "RepName": "mashad",
+    //             "CommentText": text,
+    //             "AvatarNo": "0",//hardcode
+    //             "ImageName": null, //hardcode
+    //             "ImageBase64": null //hardcode
+    //         })
+    //     }).then(res => res.json())
+    //         .then((res) => {
+    //             setText('')
+    //             getPosts()
+    //         }).catch((rej) => {
+    //             console.log(rej);
+    //         })
+
+    // }
+
+
+
 
 
     const FlatList_Header = () => {
@@ -100,11 +168,12 @@ const Newsfeed = () => {
         return (
             <TouchableOpacity
                 onPress={() => { navigation.navigate("Details", { openDetail: item }) }}
+                onLongPress={()=> {DeleteData(item.CommentText)}}
             >
                 <View style={styles.post}>
                     <View style={styles.namedate}>
-                        <Text>{item.RepsName}</Text>
-                        <Text>{item.DateAndTime}</Text>
+                        <Text>{item.Name}</Text>
+                        <Text>{item.DateOfPosting}</Text>
                     </View>
                     <View style={styles.comment}>
                         <Text>{item.CommentText}</Text>
@@ -120,17 +189,14 @@ const Newsfeed = () => {
 
     return (
         <View style={styles.container}>
-            <Header title="Newsfeed" />
+            <Header title="Newsfeed" showIcon={true} />
             {
-                indicator ?
-                    <ActivityIndicator size="large" color="#000000" />
-                    :
-                    <FlatList
-                        data={resp}
-                        renderItem={renderData}
-                        ListHeaderComponent={FlatList_Header()}
-                        ListFooterComponent={FlatList_Footer}
-                    />
+                <FlatList
+                    data={resp}
+                    renderItem={renderData}
+                    ListHeaderComponent={FlatList_Header()}
+                    ListFooterComponent={FlatList_Footer}
+                />
             }
         </View>
 
