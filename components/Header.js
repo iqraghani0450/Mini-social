@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { CommonActions, useNavigation } from '@react-navigation/native';
@@ -7,18 +7,35 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import RBSheet from "react-native-raw-bottom-sheet";
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const Header = (props) => {
+const Header = forwardRef((props, ref) => {
+    useImperativeHandle(ref, () => ({
+
+        saysHello: (name) => {
+            console.log("Hello", name)
+        },
+        saysWorld: () => {
+            console.log("World")
+        }
+
+
+    }), [])
+
     const navigation = useNavigation()
     const refRBSheet = useRef()
 
-    const logout = async () => {
-        await AsyncStorage.setItem("isLoggedIn", "false")
-        navigation.dispatch(
-            CommonActions.reset({
-                index: 0,
-                routes: [{ name: "Login" }]
-            })
-        );
+    const logout = () => {
+        refRBSheet.current.close()
+        setTimeout(async () => {
+
+            await AsyncStorage.setItem("isLoggedIn", "false")
+            navigation.dispatch(
+                CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: "Login" }]
+                })
+            );
+
+        }, 800);
     }
 
     return (
@@ -60,7 +77,6 @@ const Header = (props) => {
                         borderTopLeftRadius: 20
                     }
                 }}
-            // height={120}
             >
                 <SafeAreaView>
                     <View style={styles.modalContainer}>
@@ -104,7 +120,7 @@ const Header = (props) => {
 
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
     header: {

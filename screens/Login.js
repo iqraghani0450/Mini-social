@@ -38,6 +38,7 @@ const Login = (props) => {
 
         if (name == checkname && password == checkpassword) {
           await AsyncStorage.setItem("isLoggedIn", "true")
+          await AsyncStorage.setItem("Username", name)
           props.navigation.dispatch(
             CommonActions.reset({
               index: 0,
@@ -62,7 +63,7 @@ const Login = (props) => {
     })
     db.transaction((tx) => {
       tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS NEWSFEED (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , Name TEXT, DateOfPosting TEXT, CommentText TEXT);"
+        "CREATE TABLE IF NOT EXISTS NEWSFEED (Name TEXT, DateOfPosting TEXT, CommentText TEXT,Base64 TEXT);"//1 is true 0 is false
       )
     })
     db.transaction((tx) => {
@@ -71,10 +72,11 @@ const Login = (props) => {
       )
     })
 
-    db.transaction((tx) => {
-      tx.executeSql(
-        "SELECT * FROM EMPLOYEE", [])
-    })
+    // db.transaction((tx) => {
+    //   tx.executeSql(
+    //     "CREATE TABLE IF NOT EXISTS NEWSFEED1 (Name TEXT, DateOfPosting TEXT, CommentText TEXT,Base64 INTEGER);"
+    //   )
+    // })
 
   }
 

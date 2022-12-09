@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native';
 import Login from './screens/Login';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Splash from './screens/Splash';
-
+import Map from './screens/Map';
 
 const InTab = createBottomTabNavigator();
 const InStack = createNativeStackNavigator();
@@ -74,6 +74,17 @@ function InTabNavigation() {
           tabBarIcon: ({ color, size }) => {
             return (
               <Icon name="ellipsis-v" color={color} size={size} />
+            )
+          }
+        }}
+      />
+      <InTab.Screen
+        name='Map'
+        component={Map}
+        options={{
+          tabBarIcon: ({ color, size }) => {
+            return (
+              <Icon name="map" color={color} size={size} />
             )
           }
         }}

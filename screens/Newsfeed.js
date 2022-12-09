@@ -1,14 +1,17 @@
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View, Dimensions, ActivityIndicator } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View, Dimensions, ActivityIndicator, Image } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
 import Header from '../components/Header'
 import { useNavigation } from '@react-navigation/native'
 import Modal from "react-native-modal"
 import SQLite from 'react-native-sqlite-storage'
-import { getCalendarDateString } from 'react-native-calendars/src/services'
-import { min } from 'react-native-reanimated'
+import ImagePicker from 'react-native-image-crop-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import RBSheet from 'react-native-raw-bottom-sheet'
+import { SafeAreaView } from 'react-native-safe-area-context'
+
 
 const windowHeight = Dimensions.get('window').height;
-
+const windowWidth = Dimensions.get('window').width;
 const db = SQLite.openDatabase(
     {
         name: "Employees",
@@ -22,19 +25,18 @@ const Newsfeed = () => {
 
     const [resp, setResp] = useState([])
     const [text, setText] = useState("")
+    const [indicator, setIndicator] = useState(false)
+    const [base, setBase] = useState("")
+    const [openModal, setOpenModal] = useState(false)
     const navigation = useNavigation()
+    const checkRef = useRef()
+    const RBSheetRef = useRef()
     let arr = []
 
 
     useEffect(() => {
         setIndicator(true);
         GettingData()
-        //    let test =
-
-
-
-        // getPosts()
-
     }, [])
 
     // const InsertingData = () => {
@@ -47,23 +49,59 @@ const Newsfeed = () => {
     // const dummyData = () => {
 
     // }
-   
 
-    const onPost = () => {
 
-        let InsertQuery = "INSERT INTO NEWSFEED VALUES (?,?,?)"
+
+    const onPost = async () => {
+        let username = await AsyncStorage.getItem("Username")
+        let InsertQuery = "INSERT INTO NEWSFEED VALUES (?,?,?,?)"
         let date = new Date().getDate() + "/" + parseInt(new Date().getMonth() + 1) + "/" + new Date().getFullYear()
         let hour = new Date().getHours() % 12 || 12
         let mins = new Date().getMinutes()
         let ampm = new Date().getHours() > 12 ? "PM" : "AM"
         let dateAndTime = (date + " " + hour + ":" + mins + " " + ampm)
-
         db.transaction((tx) => {
-            tx.executeSql(InsertQuery, [Name, dateAndTime, text])
+            tx.executeSql(InsertQuery, [username, dateAndTime, text, base], (tx, result) => {
+                console.log(result)
+            })
         })
         setText("")
         GettingData()
+        setBase("")
+        console.log(checkRef.current.saysHello("Iqra"))
     }
+
+
+    const onTakePhoto = async () => {
+        await ImagePicker.openCamera({
+            width: 200,
+            height: 200,
+            mediaType: "photo",
+            includeBase64: true,
+            compressImageQuality: 0.8
+        }).then(image => {
+            setBase(image.data)
+            RBSheetRef.current.close()
+        }).catch(err => {
+            console.log(err)
+        })
+    }
+
+    const onChooseFromGallery = async () => {
+
+        await ImagePicker.openPicker({
+            width: 300,
+            height: 400,
+            includeBase64: true,
+        }).then(image => {
+            setBase(image.data)
+            RBSheetRef.current.close()
+        }).catch(err => {
+            console.log(err)
+        })
+
+    }
+
 
     const GettingData = async () => {
         let SelectQuery = "SELECT * FROM NEWSFEED"
@@ -78,14 +116,14 @@ const Newsfeed = () => {
         })
     }
 
-        const DeleteData = (CommentText) => {
-            let DeleteQuery = "DELETE FROM NEWSFEED WHERE CommentText = ?"
-            db.transaction((tx) => {
-                tx.executeSql(DeleteQuery, [CommentText], (tx,results) => {
-                })
+    const DeleteData = (CommentText) => {
+        let DeleteQuery = "DELETE FROM NEWSFEED WHERE CommentText = ?"
+        db.transaction((tx) => {
+            tx.executeSql(DeleteQuery, [CommentText], (tx, results) => {
             })
-            GettingData()
-        }
+        })
+        GettingData()
+    }
 
 
     // const getPosts = () => {
@@ -146,12 +184,27 @@ const Newsfeed = () => {
                     value={text}
                 />
                 <View style={styles.button}>
+                    <View style={{flexDirection: 'row', width: windowWidth/1.3}}>
                     <TouchableOpacity style={styles.postButton}
+                        onPress={() => { RBSheetRef.current.open() }}
+                    >
+                        <Text style={styles.text}>Upload</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setOpenModal(true) }}>
+                    <Image source={{ uri: "data:image/png;base64," + base }} style={{ height: 20, width: 20, margin: 3}}/>
+                    </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity style={[styles.postButton, {width: windowWidth/7.7}]}
                         onPress={() => { setIndicator(true); onPost() }}
                     >
                         <Text style={styles.text}>Post</Text>
                     </TouchableOpacity>
                 </View>
+
+<Modal isVisible={openModal} onBackButtonPress={() => {setOpenModal(false)}} onBackdropPress={() => {setOpenModal(false)}}>
+    <Image source={{ uri: "data:image/png;base64," + base }} style={{ height: "70%", width: "70%", alignSelf: 'center'}}/>
+</Modal>
+
             </View>
         );
     }
@@ -168,7 +221,7 @@ const Newsfeed = () => {
         return (
             <TouchableOpacity
                 onPress={() => { navigation.navigate("Details", { openDetail: item }) }}
-                onLongPress={()=> {DeleteData(item.CommentText)}}
+                onLongPress={() => { DeleteData(item.CommentText) }}
             >
                 <View style={styles.post}>
                     <View style={styles.namedate}>
@@ -176,7 +229,10 @@ const Newsfeed = () => {
                         <Text>{item.DateOfPosting}</Text>
                     </View>
                     <View style={styles.comment}>
-                        <Text>{item.CommentText}</Text>
+                        <Text style={{ fontSize: 18 }}>{item.CommentText}</Text>
+                        {item.Base64 != "" ?
+                            <Image source={{ uri: "data:image/png;base64," + item.Base64 }} style={{ height: windowHeight/4, width: windowWidth/4, marginTop: 7 }} />
+                            : null}
                     </View>
                 </View>
             </TouchableOpacity>
@@ -189,7 +245,7 @@ const Newsfeed = () => {
 
     return (
         <View style={styles.container}>
-            <Header title="Newsfeed" showIcon={true} />
+            <Header title="Newsfeed" showIcon={true} ref={checkRef} />
             {
                 <FlatList
                     data={resp}
@@ -198,6 +254,30 @@ const Newsfeed = () => {
                     ListFooterComponent={FlatList_Footer}
                 />
             }
+
+            <RBSheet
+                ref={RBSheetRef}
+                closeOnDragDown={true}
+                closeOnPressMask={true}
+                height={120}
+            >
+
+                <SafeAreaView>
+                    <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'space-around', height: "100%" }}>
+                        <TouchableOpacity style={styles.photoBtn}
+                            onPress={() => { onTakePhoto() }}
+                        >
+                            <Text style={{ color: "white", fontSize: 14 }}>Take Photo</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.photoBtn}
+                            onPress={() => { onChooseFromGallery() }}
+                        >
+                            <Text style={{ color: "white", fontSize: 14 }}>Choose From Gallery</Text>
+                        </TouchableOpacity>
+                    </View>
+                </SafeAreaView>
+
+            </RBSheet>
         </View>
 
 
@@ -227,15 +307,15 @@ const styles = StyleSheet.create({
 
     },
     button: {
+        flexDirection: 'row',
         width: "100%",
         height: "20%",
-        alignItems: 'flex-end',
-        paddingRight: 18,
+        justifyContent: 'flex-start',
+        paddingHorizontal: 18,
         paddingTop: 10,
     },
     postButton: {
         borderWidth: 2,
-        width: "15%",
         alignItems: 'center',
         backgroundColor: '#2D4874'
     },
@@ -245,7 +325,7 @@ const styles = StyleSheet.create({
     },
     post: {
         width: "90%",
-        height: windowHeight / 6,
+        flex: 1,
         alignSelf: 'center',
         marginTop: 15,
         shadowColor: "#000",
@@ -267,8 +347,16 @@ const styles = StyleSheet.create({
     },
     comment: {
         alignItems: 'flex-start',
-        padding: 7
+        padding: 7,
     },
+    photoBtn: {
+        width: "40%",
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: "60%",
+        borderRadius: 20,
+        backgroundColor: "#2D4874"
+    }
 
 
 })
