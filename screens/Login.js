@@ -1,10 +1,11 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View, Keyboard, ImageBackground } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import Header from '../components/Header'
-import SQLite from 'react-native-sqlite-storage'
-import { StackActions, NavigationActions, CommonActions } from '@react-navigation/native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { CommonActions, useNavigation } from '@react-navigation/native'
+import React, { useEffect, useState } from 'react'
+import { Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
+import { color } from 'react-native-reanimated'
+import SQLite from 'react-native-sqlite-storage'
+import Icon from 'react-native-vector-icons/FontAwesome'
+import Header from '../components/Header'
 
 
 const db = SQLite.openDatabase(
@@ -18,8 +19,10 @@ const db = SQLite.openDatabase(
 
 const Login = (props) => {
 
+  const navigation = useNavigation()
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(true)
   let checkname = ""
   let checkpassword = ""
 
@@ -45,7 +48,8 @@ const Login = (props) => {
               routes: [{ name: "LoggedIn" }]
             })
           );
-        } else {
+        }
+        else {
           alert("Wrong username or password")
         }
       })
@@ -66,18 +70,6 @@ const Login = (props) => {
         "CREATE TABLE IF NOT EXISTS NEWSFEED (Name TEXT, DateOfPosting TEXT, CommentText TEXT,Base64 TEXT);"//1 is true 0 is false
       )
     })
-    db.transaction((tx) => {
-      tx.executeSql(
-        "INSERT INTO EMPLOYEE VALUES (?,?,?,?,?,?,?,?)", ['admin', '', '', 'admin', '', '', '', '']
-      )
-    })
-
-    // db.transaction((tx) => {
-    //   tx.executeSql(
-    //     "CREATE TABLE IF NOT EXISTS NEWSFEED1 (Name TEXT, DateOfPosting TEXT, CommentText TEXT,Base64 INTEGER);"
-    //   )
-    // })
-
   }
 
   return (
@@ -88,24 +80,48 @@ const Login = (props) => {
         <Header title="Login" />
         <View style={styles.subcontainer}>
           <Icon name="stumbleupon"
-          size={120} color="#2D4874"
-          style = {styles.picture}
+            size={120} color="#2D4874"
+            style={styles.picture}
           />
           <TextInput
             style={styles.textField}
-            placeholder='                                     Username'
+            placeholder='Username'
+            placeholderTextColor={"black"}
+            autoCapitalize={'none'}
             onChangeText={(txt) => setName(txt)}
           />
-          <TextInput
-            style={styles.textField}
-            placeholder="                                     Password"
-            secureTextEntry={true}
-            onChangeText={(txt) => setPassword(txt)}
-          />
+          <View style={{ flexDirection: 'row' }}>
+            <TextInput
+              style={[styles.textField, { left: "15%" }]}
+              placeholder="Password"
+              secureTextEntry={showPassword}
+              placeholderTextColor={"black"}
+              autoCapitalize={'none'}
+              onChangeText={(txt) => setPassword(txt)}
+            />
+            {showPassword ?
+              <TouchableOpacity style={styles.eye} onPress={() => { setShowPassword(false) }}>
+                <Icon name="eye"
+                  size={15}
+                />
+              </TouchableOpacity>
+              :
+              <TouchableOpacity style={styles.eye} onPress={() => { setShowPassword(true) }}>
+                <Icon name="eye-slash"
+                  size={15}
+                />
+              </TouchableOpacity>
+            }
+          </View>
           <TouchableOpacity style={styles.button}
             onPress={() => { signIn() }}
           >
             <Text style={styles.text}>Login</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.create}
+            onPress={() => { navigation.navigate("Form") }}
+          >
+            <Text style={styles.createColor}>Don't have an account? Sign up</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -127,12 +143,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   textField: {
-    width: '90%',
     borderWidth: 2,
     borderColor: 'black',
     borderRadius: 10,
     margin: 5,
     padding: 5,
+    color: "black",
+    width: '90%'
   },
   picture: {
     width: "35%",
@@ -140,8 +157,10 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: 'center',
-    paddingTop: 20,
+    justifyContent: 'center',
+    marginTop: 20,
     width: "30%",
+    height: "5%",
   },
   text: {
     borderRadius: 5,
@@ -152,9 +171,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#2D4874",
     padding: 4,
     width: "100%",
-    height: "22%",
     textAlign: 'center',
-    
+  },
+  create: {
+    marginTop: 20,
+  },
+  createColor: {
+    color: "black",
+    fontSize: 15
+  },
+  eye: {
+    justifyContent: "center",
+    zIndex: 1,
+    right: "45%"
   }
 
 

@@ -1,10 +1,9 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import SQLite from 'react-native-sqlite-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from '../components/Header';
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import SQLite from 'react-native-sqlite-storage'
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -19,9 +18,6 @@ const db = SQLite.openDatabase(
 
 const List = (props) => {
 
-
-
-
     useFocusEffect(
         React.useCallback(() => {
             getDataFromDB()
@@ -30,7 +26,6 @@ const List = (props) => {
 
     const navigation = useNavigation()
     const [data, setData] = useState([])
-    console.log(props?.route?.params);
 
     const getDataFromDB = () => {
         const query = "SELECT * FROM EMPLOYEE"
@@ -47,15 +42,6 @@ const List = (props) => {
         )
     }
 
-
-    // useEffect(() => {
-    //     api();
-    // }, []
-    // )
-    const onFloatinActionClick = () => {
-        navigation.navigate("Form", { isEdit: false })
-    };
-
     const renderDummy = ({ item, index }) => {
         return (
             item.FName != "admin" &&
@@ -70,7 +56,6 @@ const List = (props) => {
                     />
 
                     <View style={styles.listItemFirst}>
-                        {/* <Text style={styles.month}>{months[item.Month]}</Text> */}
                         <Text style={styles.year}>{item.FName}</Text>
                     </View>
                     <View style={styles.subListItems}>
@@ -82,18 +67,6 @@ const List = (props) => {
         )
     }
 
-
-    // const api = () => {
-    //     fetch('http://jsonplaceholder.typicode.com/users',)
-    //         .then(res => res.json())
-    //         .then((res) => {
-    //             console.log("DONE = ", res);
-    //             setData(res)
-    //         }).catch((rej) => {
-    //             console.log(rej);
-    //         })
-    // }
-
     const footer = () => {
         return (
             <View style={{ margin: 24 }}></View>
@@ -102,18 +75,13 @@ const List = (props) => {
 
     return (
         <View style={styles.Container}>
-            <Header title='EMPLOYEES' showIconBack={true} showIcon={true} />
+            <Header title='EMPLOYEES' showIcon={true} />
             <FlatList
                 numColumns={2}
                 data={data}
                 renderItem={renderDummy}
                 ListFooterComponent={footer}
             />
-            <TouchableOpacity style={styles.FloatingActionButtonStyle}
-                activeOpacity={0.7}
-                onPress={() => { onFloatinActionClick() }}>
-                <Icon name='plus' size={25} color={"white"} />
-            </TouchableOpacity>
         </View>
     );
 };
@@ -142,7 +110,6 @@ const styles = StyleSheet.create({
         },
         shadowColor: "black",
         elevation: 10,
-
     },
 
     FloatingActionButtonImageStyle: {
@@ -165,7 +132,6 @@ const styles = StyleSheet.create({
         },
         shadowColor: "black",
         elevation: 5,
-
     },
     subListItems: {
         height: "35%",
@@ -173,12 +139,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderBottomRightRadius: 12,
         borderBottomLeftRadius: 12
-
     },
     Text: {
         fontSize: windowHeight / 50,
         color: 'white'
-
     },
     listItemFirst: {
         alignItems: 'center',
@@ -197,7 +161,8 @@ const styles = StyleSheet.create({
     },
     year: {
         fontSize: 15,
-        fontWeight: 'bold'
+        color: "black",
+        fontWeight: 'bold',
     }
 });
 

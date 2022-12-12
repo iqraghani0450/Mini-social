@@ -1,13 +1,13 @@
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View, Dimensions, ActivityIndicator, Image } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
-import Header from '../components/Header'
-import { useNavigation } from '@react-navigation/native'
-import Modal from "react-native-modal"
-import SQLite from 'react-native-sqlite-storage'
-import ImagePicker from 'react-native-image-crop-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useNavigation } from '@react-navigation/native'
+import React, { useEffect, useRef, useState } from 'react'
+import { Dimensions, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import ImagePicker from 'react-native-image-crop-picker'
+import Modal from "react-native-modal"
 import RBSheet from 'react-native-raw-bottom-sheet'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import SQLite from 'react-native-sqlite-storage'
+import Header from '../components/Header'
 
 
 const windowHeight = Dimensions.get('window').height;
@@ -25,7 +25,6 @@ const Newsfeed = () => {
 
     const [resp, setResp] = useState([])
     const [text, setText] = useState("")
-    const [indicator, setIndicator] = useState(false)
     const [base, setBase] = useState("")
     const [openModal, setOpenModal] = useState(false)
     const navigation = useNavigation()
@@ -35,21 +34,8 @@ const Newsfeed = () => {
 
 
     useEffect(() => {
-        setIndicator(true);
         GettingData()
     }, [])
-
-    // const InsertingData = () => {
-    //    let query="INSERT INTO NEWSFEED VALUES (?,?,?)"
-    //     db.transaction((tx) => {
-    //         tx.executeSql(query , [Name, DateOfPosting, CommentText ])
-    //     })
-    //     GettingData()
-    // }
-    // const dummyData = () => {
-
-    // }
-
 
 
     const onPost = async () => {
@@ -125,54 +111,6 @@ const Newsfeed = () => {
         GettingData()
     }
 
-
-    // const getPosts = () => {
-    //     fetch("https://www.engage.salesflo.com/api/app/news-feed/get", {
-    //         method: "POST",
-    //         headers: {
-    //             Accept: 'application/json',
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify({ "RepsId": 3967 })
-    //     }
-    //     ).then(res => res.json())
-    //         .then((res) => {
-    //             setResp(res.data)
-    //             setIndicator(false)
-    //         })
-    //         .catch((rej) => {
-    //         })
-    // }
-
-    // const onPost = () => {
-    //     fetch("https://www.engage.salesflo.com/api/app/news-feed/post", {
-    //         method: "POST",
-    //         headers: {
-    //             Accept: 'application/json',
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify({
-    //             "RepsId": 3967,// hard code
-    //             "RepName": "mashad",
-    //             "CommentText": text,
-    //             "AvatarNo": "0",//hardcode
-    //             "ImageName": null, //hardcode
-    //             "ImageBase64": null //hardcode
-    //         })
-    //     }).then(res => res.json())
-    //         .then((res) => {
-    //             setText('')
-    //             getPosts()
-    //         }).catch((rej) => {
-    //             console.log(rej);
-    //         })
-
-    // }
-
-
-
-
-
     const FlatList_Header = () => {
         return (
             <View style={styles.inputView}>
@@ -184,33 +122,33 @@ const Newsfeed = () => {
                     value={text}
                 />
                 <View style={styles.button}>
-                    <View style={{flexDirection: 'row', width: windowWidth/1.3}}>
-                    <TouchableOpacity style={styles.postButton}
-                        onPress={() => { RBSheetRef.current.open() }}
-                    >
-                        <Text style={styles.text}>Upload</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { setOpenModal(true) }}>
-                    <Image source={{ uri: "data:image/png;base64," + base }} style={{ height: 20, width: 20, margin: 3}}/>
-                    </TouchableOpacity>
+                    <View style={styles.postAndUpload}>
+                        <TouchableOpacity style={styles.uploadButton}
+                            onPress={() => { RBSheetRef.current.open() }}
+                        >
+                            <Text style={styles.text}>Upload</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => { setOpenModal(true) }}>
+                            <Image source={{ uri: "data:image/png;base64," + base }} style={styles.smallImage} />
+                        </TouchableOpacity>
                     </View>
-                    <TouchableOpacity style={[styles.postButton, {width: windowWidth/7.7}]}
-                        onPress={() => { setIndicator(true); onPost() }}
+                    <TouchableOpacity style={styles.postButton}
+                        onPress={() => { onPost() }}
                     >
                         <Text style={styles.text}>Post</Text>
                     </TouchableOpacity>
                 </View>
 
-<Modal isVisible={openModal} onBackButtonPress={() => {setOpenModal(false)}} onBackdropPress={() => {setOpenModal(false)}}>
-    <Image source={{ uri: "data:image/png;base64," + base }} style={{ height: "70%", width: "70%", alignSelf: 'center'}}/>
-</Modal>
+                <Modal isVisible={openModal} onBackButtonPress={() => { setOpenModal(false) }} onBackdropPress={() => { setOpenModal(false) }}>
+                    <Image source={{ uri: "data:image/png;base64," + base }} style={styles.openImage} />
+                </Modal>
 
             </View>
         );
     }
     const FlatList_Footer = () => {
         return (
-            <View style={{ margin: 24 }} />
+            <View style={styles.footer} />
         );
     }
 
@@ -229,9 +167,9 @@ const Newsfeed = () => {
                         <Text>{item.DateOfPosting}</Text>
                     </View>
                     <View style={styles.comment}>
-                        <Text style={{ fontSize: 18 }}>{item.CommentText}</Text>
+                        <Text style={styles.description}>{item.CommentText}</Text>
                         {item.Base64 != "" ?
-                            <Image source={{ uri: "data:image/png;base64," + item.Base64 }} style={{ height: windowHeight/4, width: windowWidth/4, marginTop: 7 }} />
+                            <Image source={{ uri: "data:image/png;base64," + item.Base64 }} style={styles.bigImage} />
                             : null}
                     </View>
                 </View>
@@ -259,20 +197,20 @@ const Newsfeed = () => {
                 ref={RBSheetRef}
                 closeOnDragDown={true}
                 closeOnPressMask={true}
-                height={120}
+                height={windowHeight/4}
             >
 
                 <SafeAreaView>
-                    <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'space-around', height: "100%" }}>
+                    <View style={styles.TakeOrChoose}>
                         <TouchableOpacity style={styles.photoBtn}
                             onPress={() => { onTakePhoto() }}
                         >
-                            <Text style={{ color: "white", fontSize: 14 }}>Take Photo</Text>
+                            <Text style={styles.cameraText}>Take Photo</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.photoBtn}
                             onPress={() => { onChooseFromGallery() }}
                         >
-                            <Text style={{ color: "white", fontSize: 14 }}>Choose From Gallery</Text>
+                            <Text style={styles.cameraText}>Choose From Gallery</Text>
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>
@@ -314,10 +252,34 @@ const styles = StyleSheet.create({
         paddingHorizontal: 18,
         paddingTop: 10,
     },
+    uploadButton: {
+        borderWidth: 2,
+        alignItems: 'center',
+        justifyContent: "center",
+        width: windowWidth / 5.9,
+        backgroundColor: '#2D4874',
+    },
+    smallImage: {
+        height: 20,
+        width: 20,
+        margin: 3
+    },
     postButton: {
         borderWidth: 2,
         alignItems: 'center',
-        backgroundColor: '#2D4874'
+        justifyContent: 'center',
+        backgroundColor: '#2D4874',
+        width: windowWidth / 7.7
+    },
+    openImage: {
+        height: "70%",
+        width: "70%",
+        alignSelf: 'center'
+    },
+    bigImage: {
+        height: windowHeight / 4,
+        width: windowWidth / 4,
+        marginTop: 7
     },
     text: {
         fontWeight: '600',
@@ -340,6 +302,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#EFEEF5'
 
     },
+    postAndUpload: {
+        flexDirection: 'row',
+        width: windowWidth / 1.3
+    },
     namedate: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -349,13 +315,29 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         padding: 7,
     },
+    description: {
+        fontSize: 18
+    },
     photoBtn: {
         width: "40%",
         alignItems: 'center',
         justifyContent: 'center',
-        height: "60%",
+        height: "40%",
         borderRadius: 20,
         backgroundColor: "#2D4874"
+    },
+    TakeOrChoose: {
+        flexDirection: "row",
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        height: "100%"
+    },
+    cameraText: {
+        color: "white",
+        fontSize: 14
+    },
+    footer: {
+        margin: 24
     }
 
 

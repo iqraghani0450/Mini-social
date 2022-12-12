@@ -1,5 +1,5 @@
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import Header from '../components/Header'
 
@@ -15,6 +15,7 @@ const ToDo = () => {
         <TextInput
           style={styles.inputField}
           placeholder="Enter Items to the list"
+          placeholderTextColor={"black"}
           onChangeText={(txt) => { setText(txt) }}
           value={text}
         />
@@ -71,12 +72,12 @@ const styles = StyleSheet.create({
   },
   inputField: {
     borderWidth: 1,
-    height: "50%",
+    height: "35%",
     width: '70%'
   },
   button: {
     borderWidth: 1,
-    height: "50%",
+    height: "35%",
     width: '20%',
     alignItems: 'center',
     justifyContent: 'center',
@@ -87,7 +88,8 @@ const styles = StyleSheet.create({
     padding: 12
   },
   items: {
-    fontSize: 30
+    fontSize: 30,
+    color: "black"
   }
 
 

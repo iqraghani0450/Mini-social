@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { CommonActions, useNavigation } from '@react-navigation/native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Splash = () => {
@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
   splash: {
     fontSize: 33,
     textAlign: 'center',
+    color: "black"
   },
   logo: {
     alignSelf: 'center'

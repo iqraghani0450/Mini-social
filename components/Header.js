@@ -1,25 +1,16 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { CommonActions, useNavigation } from '@react-navigation/native';
-import Modal from "react-native-modal";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import RBSheet from "react-native-raw-bottom-sheet";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/FontAwesome';
+
+const height= Dimensions.get("screen").height
+
 
 const Header = forwardRef((props, ref) => {
-    useImperativeHandle(ref, () => ({
-
-        saysHello: (name) => {
-            console.log("Hello", name)
-        },
-        saysWorld: () => {
-            console.log("World")
-        }
-
-
-    }), [])
-
+    
     const navigation = useNavigation()
     const refRBSheet = useRef()
 
@@ -70,7 +61,7 @@ const Header = forwardRef((props, ref) => {
                 ref={refRBSheet}
                 closeOnDragDown={true}
                 closeOnPressMask={true}
-                height={170}
+                height={height/4}
                 customStyles={{
                     container: {
                         borderTopRightRadius: 20,
@@ -94,30 +85,6 @@ const Header = forwardRef((props, ref) => {
                     </View>
                 </SafeAreaView>
             </RBSheet>
-
-
-            {/* <Modal
-                isVisible={showModal}
-                style={{ margin: 0, justifyContent: "flex-end" }}
-            >
-                <View style={styles.modalContainer}>
-                    <Text style={[styles.modalText, { color: "black", paddingTop: 25}]}>Do you want to Logout?</Text>
-                    <View style={styles.modalSubContainer}>
-                        <TouchableOpacity style={styles.modalBtn}
-                            onPress={() => { toggle() }}>
-                            <Text style={[styles.modalText, { backgroundColor: "#F1F1F1", color: "black" }]}>No</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.modalBtn}
-                            onPress={() => { logout() }}>
-                            <Text style={[styles.modalText, { backgroundColor: "#2D4874", color: "white" }]}>Yes</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal> */}
-            {/* <Modal isVisible={showModal}>
-                <Image style={styles.image} source={require("../images/hu.jpg")}></Image>
-            </Modal> */}
-
         </View>
     );
 });
@@ -179,7 +146,6 @@ const styles = StyleSheet.create({
         height: "100%",
         width: "100%",
         justifyContent: "space-between"
-        // // height: "20%",
     },
 
 });

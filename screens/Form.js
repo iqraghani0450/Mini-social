@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Dimensions } from "react-native";
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scrollview'
-import DatePicker from 'react-native-date-picker';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import DropDownPicker from 'react-native-dropdown-picker';
-import Header from '../components/Header';
-import EList from '../components/EmployeeDetail';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import SQLite from 'react-native-sqlite-storage'
-// SQLite.DEBUG(true)
-// SQLite.enablePromise(true)
+import React, { useState } from "react";
+import { Dimensions, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import DatePicker from 'react-native-date-picker';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scrollview';
+import SQLite from 'react-native-sqlite-storage';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import Header from '../components/Header';
 
 const db = SQLite.openDatabase(
     {
@@ -19,20 +16,15 @@ const db = SQLite.openDatabase(
     () => { },
     error => { console.log(error) }
 )
-// SQLite.DEBUG(true)s
-// SQLite.enablePromise(true)
 
 const Forms = (props) => {
 
-    // let { isEdit, index } = props?.route?.params?.
     let data = props?.route?.params?.data
     let isEdit = props?.route?.params?.isEdit
     let index = props?.route?.params?.index
 
     const [open, setOpen] = useState(false)
     const [dob, setDob] = useState(isEdit ? data?.Dob : "Select Date")
-    const [month, setMonth] = useState(isEdit ? data?.Month : "")
-    const [year, setYear] = useState(isEdit ? data?.Year : "")
     const [drop, setDrop] = useState(false);
     const [gender, setGender] = useState(isEdit ? data?.Gender : null);
     const [items, setItems] = useState([
@@ -48,15 +40,7 @@ const Forms = (props) => {
     const [add, setAdd] = useState(isEdit ? data?.Address : "")
     const [showPassword, setShowPassword] = useState(true)
 
-    const getAsync = async () => {
-        try {
-            const value = await AsyncStorage.getItem('name');
-            console.log(value);
-        }
-        catch (e) {
-            console.log("error", e);
-        }
-    }
+
     console.log(data)
 
     const onSave = () => {
@@ -66,15 +50,24 @@ const Forms = (props) => {
         }
         else {
             if (email.includes("@") == true && email.includes(".com") == true) {
-                const dummy = { FirstName: fName, LastName: lName, Name: fName + " " + lName, Email: email, Password: password, Month: month, Year: year, Dob: dob, PNo: pNo, Gender: gender, Address: add }
-                if (isEdit == false) {
-                    EList.push(dummy)
-                    settingData()
-                }
-                else {
-                    updateDB()
-                }
-                props.navigation.navigate('List', { array: EList })
+                settingData()
+                props.navigation.navigate('Login')
+            }
+            else {
+                alert("Please write proper email!")
+            }
+        }
+    }
+
+    const onUpdate = () => {
+
+        if (fName == "" || lName == "" || password == "" || dob == "Select Date" || pNo == "" || gender == null || add == "") {
+            alert("Don't leave the fields empty")
+        }
+        else {
+            if (email.includes("@") == true && email.includes(".com") == true) {
+                updateDB()
+                props.navigation.navigate('Employees')
             }
             else {
                 alert("Please write proper email!")
@@ -97,29 +90,9 @@ const Forms = (props) => {
         })
     }
 
-    const postAPI = () => {
-        fetch('https://jsonplaceholder.typicode.com/posts', {
-            method: "POST",
-            headers: {
-                'Content-type': 'application/json; charset=UTF-8',
-            },
-            body: JSON.stringify({
-                title: fName,
-                body: email,
-                userId: pNo,
-            })
-        }).then(res => res.json())
-            .then((res) => {
-                console.log("res", res)
-                props.navigation.navigate('List')
-            }).catch((rej) => console.log("REJECTED", rej))
-    }
-
     return (
         <KeyboardAwareScrollView
             style={styles.keyboard}
-            // keyboardDismissMode="interactive"
-            // keyboardShouldPersistTaps="always"
             automaticallyAdjustContentInsets={false}
         >
             <View style={styles.container}>
@@ -156,22 +129,23 @@ const Forms = (props) => {
                         <View style={styles.eye}>
                             <TextInput style={styles.inputField}
                                 value={password}
+                                autoCapitalize={'none'}
                                 onChangeText={(txt) => { setPassword(txt); }}
                                 secureTextEntry={showPassword}
                             />
                             {showPassword ?
-                            <TouchableOpacity onPress={()=>{setShowPassword(false)}}>
-                                <Icon  name="eye"
-                                    size={15}
-                                /> 
+                                <TouchableOpacity onPress={() => { setShowPassword(false) }}>
+                                    <Icon name="eye"
+                                        size={15}
+                                    />
                                 </TouchableOpacity>
                                 :
-                                <TouchableOpacity onPress={()=>{setShowPassword(true)}}>
-                                <Icon name="eye-slash"
-                                    size={15}
-                                />
+                                <TouchableOpacity onPress={() => { setShowPassword(true) }}>
+                                    <Icon name="eye-slash"
+                                        size={15}
+                                    />
                                 </TouchableOpacity>
-                                }
+                            }
                         </View>
                     </View>
 
@@ -193,16 +167,8 @@ const Forms = (props) => {
                             mode={'date'}
                             maximumDate={new Date("2004-11-11")}
                             onConfirm={(date) => {
-                                if (EList.findIndex(Item => Item.Month == date.getMonth()) >= 0 && EList.findIndex(Item => Item.Year == date.getFullYear()) >= 0) {
-                                    alert("Select other date")
-                                    setOpen(false)
-                                }
-                                else {
-                                    setDob(date.getDate() + "-" + (parseInt(date.getMonth()) + 1) + "-" + date.getFullYear())
-                                    setMonth(date.getMonth())
-                                    setYear(date.getFullYear())
-                                    setOpen(false)
-                                }
+                                setDob(date.getDate() + "-" + (parseInt(date.getMonth()) + 1) + "-" + date.getFullYear())
+                                setOpen(false)
                             }}
                             onCancel={() => {
                                 setOpen(false)
@@ -228,6 +194,7 @@ const Forms = (props) => {
                             setOpen={setDrop}
                             setValue={setGender}
                             setItems={setItems}
+                            searchPlaceholderTextColor={"black"}
                         />
                     </View>
                     <View style={styles.ad}>
@@ -241,11 +208,17 @@ const Forms = (props) => {
                     </View>
                 </View>
                 <View style={styles.buttonView}>
-                    <TouchableOpacity style={styles.saveBtn}
-                        onPress={() => { onSave() }}
-                    >
-                        {isEdit ?  <Text style={styles.save}>Update</Text> :  <Text style={styles.save}>Save</Text> }
-                    </TouchableOpacity>
+                    {isEdit ?
+                        <TouchableOpacity style={styles.saveBtn}
+                            onPress={() => { onUpdate() }} >
+                            <Text style={styles.save}>Update</Text>
+                        </TouchableOpacity>
+                        :
+                        <TouchableOpacity style={styles.saveBtn}
+                            onPress={() => { onSave() }}  >
+                            <Text style={styles.save}>Save</Text>
+                        </TouchableOpacity>
+                    }
                 </View>
             </View>
         </KeyboardAwareScrollView>
@@ -256,19 +229,20 @@ const Forms = (props) => {
 
 const styles = StyleSheet.create({
     keyboard: {
-        // flex: 1,
+        flex: 1,
+        height: Dimensions.get("screen").height,
+        backgroundColor: "#fff",
     },
     container: {
-        width: Dimensions.get("screen").width,
-        height: Dimensions.get("screen").height / 1.2,
+        width: "100%",
+        height: Dimensions.get("screen").height / 1.06,
         backgroundColor: "#fff",
         alignItems: 'center',
-        justifyContent: 'space-between',
-        // flex:
-
+        flex: 1
     },
     subContainer: {
-        height: "80%",
+        marginTop: 20,
+        height: "70%",
         width: "90%",
         backgroundColor: "#2D4874",
         borderRadius: 10,
@@ -296,28 +270,26 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: 'white',
         alignItems: "center",
-
     },
     name: {
         width: "48%",
         height: "100%",
         flexDirection: 'column',
         justifyContent: "center",
-
     },
     nameInput: {
         width: "100%",
         borderColor: 'black',
         backgroundColor: 'white',
-        padding: 0
+        padding: 0,
+        color: "black"
     },
     inputField: {
         width: "95%",
-        // height: "40%",
         borderColor: 'black',
         backgroundColor: 'white',
-        // borderWidth: 2,
-        padding: 0
+        padding: 0,
+        color: "black"
     },
     dob: {
         width: "100%",
@@ -340,8 +312,8 @@ const styles = StyleSheet.create({
     multilineInput: {
         height: "70%",
         backgroundColor: 'white',
+        color: "black",
         textAlignVertical: 'top',
-
     },
     saveBtn: {
         borderWidth: 1,
@@ -358,7 +330,6 @@ const styles = StyleSheet.create({
         fontSize: 20,
         width: "70%",
         color: 'white',
-
     },
     dropdown: {
         backgroundColor: "#fff",
@@ -372,10 +343,10 @@ const styles = StyleSheet.create({
         height: "25%",
     },
     buttonView: {
-        height: "9%",
+        height: "20%",
         width: "60%",
+        justifyContent: "center",
         alignItems: 'center',
-        justifyContent: 'center'
     },
     save: {
         fontSize: 18,

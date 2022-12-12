@@ -1,9 +1,8 @@
-import { PermissionsAndroid, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
+import { PermissionsAndroid, StyleSheet, TouchableOpacity, View } from 'react-native'
 import Geolocation from 'react-native-geolocation-service'
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import Icon from 'react-native-vector-icons/FontAwesome'
-import { FlatList } from 'react-native-gesture-handler'
 
 const Map = () => {
 
@@ -64,11 +63,11 @@ const Map = () => {
       >
         <Marker
           coordinate={{ latitude: lat, longitude: long }}
-          style={{zIndex: 1}}
+          style={styles.marker}
         >
           <Icon name={"map-pin"} size={35} color={"#2D4874"} />
         </Marker>
-        
+
         {locations.map((item, index) => {
           return (
             <Marker
@@ -82,7 +81,7 @@ const Map = () => {
         })}
 
       </MapView>
-      <TouchableOpacity style={{ alignSelf: 'flex-end', bottom: 40, right: 20, backgroundColor: "white", borderRadius: 60 }} onPress={() => { MoveToLocation() }}>
+      <TouchableOpacity style={styles.backToLocation} onPress={() => { MoveToLocation() }}>
         <Icon name={"safari"} size={40} color={"#2D4874"} />
       </TouchableOpacity>
     </View>
@@ -100,4 +99,15 @@ const styles = StyleSheet.create({
   map: {
     ...StyleSheet.absoluteFillObject,
   },
+  backToLocation: {
+    alignSelf: 'flex-end',
+    bottom: 40,
+    right: 20,
+    backgroundColor: "white",
+    borderRadius: 60
+  },
+  marker: {
+    zIndex: 1
+  }
+
 });
